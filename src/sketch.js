@@ -1,82 +1,50 @@
-let typingText = false;
-let typingPos;
-let texts = [];
-let mathScope = {
-  x : 0
-}
-let graphFunc = 'x * x';
+let kTexts = [];
+let kMouseX;
+let kMouseY;
+let kTypeCursor;
+let focusedKText = undefined;
+
 function setup() {
   createCanvas(600,600);
+  textSize(20);
+  kTypeCursor = new KTypeCursor();
 }
 
-function draw() {  
+function draw() {
   translate(width/2, height/2);
   background(0);
-  draw2dcartesian();
-  drawGraph();
-  noStroke();
-  fill(255);
-  const curX = mouseX - width/2
-  mathScope.x = curX;
-  ellipse(curX,math.eval(graphFunc, mathScope), 8, 8);
-  text("test",-width/2+2,-height/2+20);
-  texts.forEach(t => {
-    text(t.text, t.x, t.y);
+
+  update();
+
+  kTexts.forEach(kT => {
+    kT.Draw();
   });
+  kTypeCursor.Draw();
 }
 
 function mousePressed() {
   if(mouseButton === LEFT) {
-    typingPos = createVector(mouseX - width/2, mouseY - height/2);
-    typingText = true;
-    texts.push({
-      text:"",
-      x: typingPos.x,
-      y: typingPos.y
-    });
-    console.log("text added")
-  }
-}
-
-function keyPressed() {
-  if(typingText) {
-    if(keyCode === 8){
-      texts[0].text = texts[0].text.slice(0, -1);
-    }
+    console.log("add text")
+    const newText = new KText("", kMouseX, kMouseY);
+    kTexts.push(newText);
+    focusedKText = newText;
   }
 }
 
 function keyTyped() {
-  if(typingText) {
-    if(keyCode === 13) {
-      let t = texts[0].text
-      console.log(t)
-      graphFunc = t;
-    }else{
-      texts[0].text += key;
-    }
+  if(focusedKText) {
+    focusedKText.keyTyped(key);
   }
-  
 }
 
-function draw2dcartesian() {
-  // X
-  stroke(255,0,0);
-  line(-width,0, width,0);
-
-  // Y
-  stroke(0,255,0);
-  line(0, -height, 0, height);
+function keyPressed() {
+  if(focusedKText) {
+    focusedKText.keyPressed(keyCode);
+  }
 }
 
-function drawGraph() {
-  stroke(255);
-  beginShape();
-  noFill();
-  for (let x = -width; x < width; x++) {
-    mathScope.x = x;
-    vertex(x,math.eval(graphFunc, mathScope));
-  }
-  endShape();
-
+function update() {
+  // Update current local mouse
+  kMouseX = mouseX-width/2;
+  kMouseY = mouseY-height/2;
 }
